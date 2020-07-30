@@ -11,6 +11,7 @@ import {
   Platform,
   ViewPropTypes,
   I18nManager,
+  Image,
 } from 'react-native';
 import Ripple from 'react-native-material-ripple';
 import { TextField } from 'react-native-material-textfield';
@@ -188,9 +189,9 @@ export default class Dropdown extends PureComponent {
     };
   }
 
-  componentWillReceiveProps({ value }) {
-    if (value !== this.props.value) {
-      this.setState({ value });
+  componentDidUpdate(prevProps) {
+    if (prevProps.value !== this.props.value) {
+      this.setState({ value: prevProps.value, icon: prevProps.icon });
     }
   }
 
@@ -507,7 +508,7 @@ export default class Dropdown extends PureComponent {
       <TextField
         label=''
         labelHeight={dropdownOffset.top - Platform.select({ ios: 1, android: 2 })}
-
+        renderLeftAccessory={<Image source={this.state.icon} style={{height: 15, width: 21, marginRight: 10}}></Image>}
         {...props}
 
         value={title}
@@ -583,6 +584,7 @@ export default class Dropdown extends PureComponent {
       rippleOpacity,
       rippleDuration,
       shadeOpacity,
+      iconStyle
     } = this.props;
 
     let props = propsExtractor(item, index);
@@ -630,9 +632,12 @@ export default class Dropdown extends PureComponent {
 
     return (
       <DropdownItem index={index} {...props}>
-        <Text style={[styles.item, itemTextStyle, textStyle]} numberOfLines={1}>
+      <View style={{flexDirection: 'row', alignItems: 'center'}}>
+        { item.icon && <Image source={item.icon} style={iconStyle}></Image> }
+        <Text style={[itemTextStyle]} numberOfLines={1}>
           {title}
         </Text>
+      </View>
       </DropdownItem>
     );
   }
