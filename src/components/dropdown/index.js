@@ -189,11 +189,20 @@ export default class Dropdown extends PureComponent {
     };
   }
 
+  fieldRef = React.createRef();
+
   componentDidUpdate(prevProps) {
     if (prevProps.value !== this.props.value) {
-      this.setState({ value: prevProps.value, icon: prevProps.icon });
+      this.setState({ value: this.props.value }, this.updateText);
     }
   }
+
+  updateText() {
+    let index = this.selectedIndex();
+    this.fieldRef.current.setValue(this.props.labelExtractor(this.props.data[index], index));
+  }
+
+
 
   componentDidMount() {
     this.mounted = true;
@@ -482,11 +491,14 @@ export default class Dropdown extends PureComponent {
       renderBase,
       labelExtractor,
       dropdownOffset,
+      iconStyle,
       renderAccessory = this.renderAccessory,
     } = this.props;
 
     let index = this.selectedIndex();
     let title;
+
+    let icon = data[index] && data[index].icon;
 
     if (~index) {
       title = labelExtractor(data[index], index);
@@ -500,21 +512,19 @@ export default class Dropdown extends PureComponent {
       return renderBase({ ...props, title, value, renderAccessory });
     }
 
-    title = null == title || 'string' === typeof title?
-      title:
+    title = null == title || 'string' === typeof title ?
+      title :
       String(title);
-
     return (
       <TextField
-        label=''
         labelHeight={dropdownOffset.top - Platform.select({ ios: 1, android: 2 })}
-        renderLeftAccessory={<Image source={this.state.icon} style={{height: 15, width: 21, marginRight: 10}}></Image>}
+        renderLeftAccessory={() => <Image source={icon} style={iconStyle}></Image>}
         {...props}
-
         value={title}
         editable={false}
         onChangeText={undefined}
-        renderAccessory={renderAccessory}
+        renderRightAccessory={renderAccessory}
+        ref={this.fieldRef}
       />
     );
   }
@@ -607,16 +617,16 @@ export default class Dropdown extends PureComponent {
     let value = valueExtractor(item, index);
     let label = labelExtractor(item, index);
 
-    let title = null == label?
-      value:
+    let title = null == label ?
+      value :
       label;
 
-    let color = disabled?
-      disabledItemColor:
-      ~selected?
-        index === selected?
-          selectedItemColor:
-          itemColor:
+    let color = disabled ?
+      disabledItemColor :
+      ~selected ?
+        index === selected ?
+          selectedItemColor :
+          itemColor :
         selectedItemColor;
 
     let textStyle = { color, fontSize };
@@ -632,12 +642,12 @@ export default class Dropdown extends PureComponent {
 
     return (
       <DropdownItem index={index} {...props}>
-      <View style={{flexDirection: 'row', alignItems: 'center'}}>
-        { item.icon && <Image source={item.icon} style={iconStyle}></Image> }
-        <Text style={[itemTextStyle]} numberOfLines={1}>
-          {title}
-        </Text>
-      </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          {item.icon && <Image source={item.icon} style={iconStyle}></Image>}
+          <Text style={[itemTextStyle]} numberOfLines={1}>
+            {title}
+          </Text>
+        </View>
       </DropdownItem>
     );
   }
@@ -687,7 +697,7 @@ export default class Dropdown extends PureComponent {
     if (null == dropdownPosition) {
       switch (selected) {
         case -1:
-          translateY -= 1 === itemCount? 0 : itemSize;
+          translateY -= 1 === itemCount ? 0 : itemSize;
           break;
 
         case 0:
